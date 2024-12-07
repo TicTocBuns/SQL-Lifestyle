@@ -1,0 +1,141 @@
+/* trova il "country" con la "forested_area" piu alta, notando come nonostante negli anni il fossil fuel
+aumenta le zone con piu foreste mantengono un valore medio piu basso*/
+SELECT
+  wd.Country, 
+  gse.years,
+  wd.forested_area,
+  gse.electricity_fossil_fuels
+FROM
+  wd
+JOIN
+  gse ON wd.Country = gse.entity
+WHERE
+  wd.Forested_Area IS NOT NULL
+GROUP BY
+  wd.Country,
+  gse.years,
+  wd.Forested_Area,
+  gse.electricity_fossil_fuels
+ORDER BY wd.Forested_Area DESC;
+
+/* Pt.2 del blocco di codice sopra, indica i paesi dal piu' alto co2, per una maggiore chiarezza
+di dati a schermo ho impostato i valori nell'anno 2019. */
+SELECT
+  wd.Country, 
+  gse.years,
+  wd.forested_area,
+  gse.electricity_fossil_fuels,
+  gse.value_co2
+FROM
+  wd
+JOIN
+  gse ON wd.Country = gse.entity
+WHERE
+  gse.value_co2 IS NOT NULL AND
+  gse.years = 2019
+GROUP BY
+  wd.Country,
+  gse.years,
+  wd.Forested_Area,
+  gse.electricity_fossil_fuels,
+  gse.value_co2
+ORDER BY gse.value_co2 DESC;
+
+/* trova il "country" e l'anno con la piu alta quantità di energia rinnovabile in terawatt-hours.*/
+SELECT
+  wd.Country, 
+  gse.years,
+  wd.forested_area,
+  gse.electricity_renewables
+FROM
+  wd
+JOIN
+  gse ON wd.Country = gse.entity
+WHERE
+  wd.Forested_Area IS NOT NULL
+GROUP BY
+  wd.Country,
+  gse.years,
+  wd.Forested_Area,
+  gse.electricity_renewables
+ORDER BY 	gse.electricity_renewables DESC;
+
+-- Ci mostra i 10 paesi con minore accesso alla corrente nell'anno 2020.
+SELECT 
+  gse.entity, 
+  gse.years,
+  gse.access_electricity
+FROM 
+  gse
+WHERE 
+  gse.years = 2020
+GROUP BY 
+  gse.entity, gse.years, gse.access_electricity
+ORDER BY 
+  gse.access_electricity ASC
+LIMIT 10;	
+
+-- mostra i primi 10 paesi con la minor iscrizione a scuole terziarie
+SELECT 
+    wd.Country, 
+    wd.gtee
+FROM 
+    wd
+WHERE
+	wd.gtee IS NOT NULL
+ORDER BY 
+    wd.gtee ASC
+LIMIT 10;
+
+--calcola la media di iscrizione alle scuole primarie e terziarie ragguppando i paesi per accesso all'elettricità
+SELECT 
+    CASE 
+        WHEN gse.access_electricity > 80 THEN 'Alto'
+        WHEN gse.access_electricity BETWEEN 30 AND 80 THEN 'Medio'
+        ELSE 'Basso'
+    END AS Livello_elettricità,
+    AVG(wd.gpee) AS Avg_Primary,
+    AVG(wd.gtee) AS Avg_Tertiary
+FROM 
+    wd
+JOIN 
+    gse ON wd.Country = gse.entity
+GROUP BY 
+    CASE 
+        WHEN gse.access_electricity > 80 THEN 'Alto'
+        WHEN gse.access_electricity BETWEEN 30 AND 80 THEN 'Medio'
+        ELSE 'Basso'
+    END;
+
+--trova i 5 paesi con la piu bassa fertilità 
+SELECT country, birth_rate, fertility_rate
+FROM wd
+WHERE fertility_rate IS NOT NULL
+ORDER BY fertility_rate ASC
+LIMIT 5;
+
+--Find the top 5 countries with the lowest maternal mortality rate:
+SELECT country, maternal_mortality
+FROM wd
+ORDER BY maternal_mortality ASC
+LIMIT 5;
+
+/* mostra come un basso accesso alla corrente ed un basso accesso/iscrizione a scuole terziare porta ad un alta
+mortalità*/
+SELECT  
+		gse.entity,
+		gse.years,
+		gse.access_electricity,
+		wd.infant_mortality,
+		wd.maternal_mortality,
+		wd.gtee
+FROM
+	gse
+JOIN
+	wd ON gse.entity = wd.country
+WHERE
+	gse.years = 2020
+GROUP BY 
+	gse.entity, gse.years, gse.access_electricity, wd.infant_mortality, wd.maternal_mortality, wd.gtee
+ORDER BY 
+	gse.access_electricity ASC;
